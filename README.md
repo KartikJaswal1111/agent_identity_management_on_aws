@@ -2,11 +2,11 @@
 
 <img src="docs/images/certificate.png" width="150" align="right" alt="Design Authentication, Authorization, and Logging - Proficient badge">
 
-Hands-on notes and architecture write-up from building identity and authorization into an AI
-agent's tools on AWS - layering **Amazon Bedrock AgentCore Gateway** (inbound auth per tool),
-**AgentCore Identity** (outbound, cross-trust-domain credentials), and **Amazon Verified
-Permissions / Cedar** (per-caller, per-tool authorization) onto a single Strands agent, one
-capability at a time, across six workshop activities.
+A hands-on build of identity and authorization into an AI agent's tools on AWS - layering
+**Amazon Bedrock AgentCore Gateway** (inbound auth per tool), **AgentCore Identity** (outbound,
+cross-trust-domain credentials), and **Amazon Verified Permissions / Cedar** (per-caller, per-tool
+authorization) onto a single Strands agent, one capability at a time, across six workshop
+activities.
 
 ![AWS Serverless](https://img.shields.io/badge/AWS-Bedrock%20AgentCore-FF9900?logo=amazonaws&logoColor=white)
 ![Status: Reference Architecture](https://img.shields.io/badge/Status-Reference%20Architecture-informational)
@@ -153,8 +153,7 @@ platform. The lab content itself is AWS's own **"SEC307: Agent Identity Manageme
 workshop - confirmed by AWS's MIT-No-Attribution copyright header in the workshop's own agent
 source and the repeated "SEC307 Workshop" labeling throughout its scripts - delivered through
 BeSA's environment rather than directly through AWS. All explanations, diagrams, and opinions are
-my own. This is not an official AWS or BeSA resource and is not affiliated with or endorsed by
-either.
+my own, shared as a learner's independent project - not a publication of AWS or BeSA.
 
 ## License
 
