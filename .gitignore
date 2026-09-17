@@ -1,0 +1,16 @@
+# Working files
+docs/images/MAPPING.md
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
