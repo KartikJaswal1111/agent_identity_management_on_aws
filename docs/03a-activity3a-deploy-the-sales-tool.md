@@ -8,12 +8,20 @@ Part of [Activity 3: Deploy the Sales, Products, and Reviews tools](03-activity3
 graph LR
     subgraph TD1["Trust Domain 1 - AnyCompany"]
         User["Authenticated user"] -->|Cognito JWT| Runtime["AgentCore Runtime<br/>Strands Agent"]
-        Runtime -->|OAuth2 client credentials| GW2["AgentCore Gateway<br/>AnyCompany-Sales-Products-Reviews-Tool"]
-        GW2 --> Sales["Sales API Gateway + Lambda"]
+        Runtime -->|"JWT Auth (2LO)"| GW2["AgentCore Gateway<br/>AnyCompany-Sales-Products-Reviews-Tool"]
+        GW2 -->|API Key| Sales["Sales<br/>API Gateway + Lambda"]
         GW1["AgentCore Gateway<br/>AnyCompany-ToS-Tool"]
         Runtime -.-> GW1
     end
 ```
+
+Note the two auth modes in play here aren't the same thing: the Runtime authenticates *to the
+gateway* with a JWT (2LO) - that's Activity 3's whole gateway, uniform across every target added
+in this and the next two sub-activities. The gateway then authenticates *to the Sales backend* with
+a bare **API key** - a target-level auth choice independent of the gateway's own inbound mode. See
+[Activity 3's overview](03-activity3-sales-products-reviews-tools.md#one-gateway-three-targets-three-different-backend-auth-modes)
+for why Products and Customer Reviews use two more, different target-level auth modes on this same
+gateway.
 
 Only the Sales target is live so far - Products and Reviews are added in
 [3b](03b-activity3b-deploy-the-products-tool.md) and [3c](03c-activity3c-deploy-the-customer-reviews-tool.md).
@@ -29,6 +37,15 @@ Inventory and Sales MCP clients, plus the shared Cognito OAuth2 provider - set u
 gateway itself:
 
 ![AgentCore Identity outbound auth: Cognito and per-tool OAuth2 clients](images/activity3a-02-outbound-auth-oauth-clients.png)
+
+Worth flagging honestly: this console screen shows a `sales-mcp-oauth-client` OAuth2 provider
+already provisioned, yet the workshop's own architecture diagrams and reference table both
+consistently label the Sales target's actual auth as a plain **API key**, not OAuth2 (see
+[Activity 3's overview](03-activity3-sales-products-reviews-tools.md)). The most likely
+explanation is that the bootstrap stack pre-provisions credential providers for more than one
+"choose your own adventure" path than any single participant actually exercises - this repo
+follows the diagrams' API Key labeling below since that's what's shown wired to the deployed
+target, but the unused OAuth2 provider is left visible here rather than quietly ignored.
 
 Configuring inbound identity for the new gateway selects JWT this time, pointed at the Cognito
 user pool:

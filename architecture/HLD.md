@@ -60,8 +60,8 @@ did:
 | Activity | Primitive added | Requirement it satisfies |
 |---|---|---|
 | 2 | AgentCore Gateway, IAM (SigV4) inbound auth, single Lambda target | F1 |
-| 3a/3b/3c | AgentCore Gateway, Cognito (OAuth2) inbound auth, API Gateway targets, multiple tools behind one gateway | F1, NF4 |
-| 4 | AgentCore Identity outbound credential provider (M2M, cross-account) | F2, F4, NF2 |
+| 3a/3b/3c | AgentCore Gateway, Cognito (JWT/2LO) inbound auth, three targets on one gateway - each with its own outbound auth (API key, OAuth2, IAM role) matched to what its own backend (Lambda, Lambda-behind-authorizer, DynamoDB) actually requires | F1, NF4 |
+| 4 | AgentCore Identity outbound credential provider (M2M) authenticating AnyCompany's own `AnyCompany-Inventory-Tool` gateway, whose target is itself a second, independently-authenticated hop into the vendor's own AgentCore Gateway/Identity/Cognito stack | F2, F4, NF2 |
 | 5 | Amazon Verified Permissions (Cedar) as a per-tool authorization gate in front of tool loading | F3, NF1, NF3 |
 
 The gateway/identity split is what makes this composable: a gateway only decides *who may reach

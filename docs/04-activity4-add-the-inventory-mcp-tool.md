@@ -6,24 +6,38 @@
 graph LR
     subgraph TD1["Trust Domain 1 - AnyCompany"]
         User["Authenticated user"] -->|Cognito JWT| Runtime["AgentCore Runtime<br/>Strands Agent"]
-        Runtime -->|IAM / SigV4| GW1["AgentCore Gateway<br/>AnyCompany-ToS-Tool"]
-        Runtime -->|OAuth2 client credentials| GW2["AgentCore Gateway<br/>AnyCompany-Sales-Products-Reviews-Tool"]
-        Runtime -->|M2M token, minted per request| Identity["AgentCore Identity<br/>OAuth2 credential provider"]
+        Runtime -->|IAM Auth| GW1["AgentCore Gateway<br/>AnyCompany-ToS-Tool"]
+        Runtime -->|"JWT Auth (2LO)"| GW2["AgentCore Gateway<br/>AnyCompany-Sales-Products-Reviews-Tool"]
+        Runtime -->|"JWT Auth (2LO)"| GW4["AgentCore Gateway<br/>AnyCompany-Inventory-Tool"]
+        Identity["AgentCore Identity<br/>OAuth2 credential provider<br/>(vendor-issued client secret)"]
+        Runtime -.->|mint M2M token for GW4| Identity
         GW1 --> ToS["Terms of Service Lambda"]
-        GW2 --> Sales["Sales API Gateway"]
-        GW2 --> Products["Products API Gateway"]
-        GW2 --> Reviews["Reviews API Gateway"]
+        GW2 -->|API Key| Sales["Sales API Gateway"]
+        GW2 -->|"OAuth2 (2LO)"| Products["Products API Gateway"]
+        GW2 -->|IAM Auth| Reviews["Customer Reviews DynamoDB"]
     end
-    subgraph TD2["Trust Domain 2 - Inventory Vendor (external)"]
-        Identity -->|Bearer access token| GW3["AgentCore Gateway<br/>AnyCompany-Inventory-Tool"]
-        GW3 --> Inventory["Inventory MCP Server"]
+    subgraph TD2["Trust Domain 2 - Inventory Vendor (external, own account)"]
+        VendorCognito["Vendor's own<br/>Amazon Cognito"]
+        VendorIdentity["Vendor's own<br/>AgentCore Identity"]
+        GW3["Vendor's own AgentCore Gateway"]
+        VendorCognito -.-> GW3
+        VendorIdentity -.-> GW3
+        GW3 -->|Lambda Authorizer| Inventory["Inventory<br/>API Gateway + Lambda"]
     end
+    GW4 -->|"JWT Auth (2LO), second hop"| GW3
 ```
 
-The first box outside AnyCompany's own trust domain. AgentCore Identity is what makes the dashed
-line into Trust Domain 2 possible without a standing, shared secret - see
-[`architecture/gateway-identity-flow.md`](../architecture/gateway-identity-flow.md) for the full
-per-request token exchange.
+The first boxes outside AnyCompany's own trust domain. What's easy to miss from the agent's code
+alone: **there are two gateways involved, not one.** `AnyCompany-Inventory-Tool` (`GW4` above) is a
+gateway AnyCompany itself owns and configures, sitting in Trust Domain 1 like every other gateway -
+the agent only ever calls *this* one directly, using an M2M token from its own AgentCore Identity.
+That gateway's own *target*, though, is configured (at the AWS console level, not in
+`agent_core.py`) to point at the vendor's own, independently-operated AgentCore Gateway in Trust
+Domain 2 - which has its own Cognito user pool and its own AgentCore Identity, entirely separate
+from AnyCompany's. See [`architecture/gateway-identity-flow.md`](../architecture/gateway-identity-flow.md)
+for the request sequence from the agent's point of view, and
+[`architecture/system-architecture.md`](../architecture/system-architecture.md) for the full
+two-gateway topology.
 
 ## A tool AnyCompany doesn't own
 
@@ -50,17 +64,28 @@ Identity's vault.
 
 ## A new gateway for a new trust boundary
 
-Unlike Activity 3's targets, which shared one gateway, Inventory gets its own:
+Unlike Activity 3's targets, which shared one gateway, Inventory gets its own - `AnyCompany-
+Inventory-Tool`, created here in AnyCompany's own account:
 
 ![Create gateway: AnyCompany-Inventory-Tool](images/activity4-03-create-gateway-inventory-tool.png)
 ![Review and create: Inventory gateway IAM role permissions](images/activity4-04-review-create-inventory-gateway.png)
+
+This gateway's *target*, though, isn't a Lambda or an API Gateway in AnyCompany's own account the
+way every earlier target was - it's configured to reach the Inventory vendor's own, separately
+operated AgentCore Gateway, sitting behind the vendor's own Cognito user pool and their own
+AgentCore Identity. That second hop (`AnyCompany-Inventory-Tool` → the vendor's gateway) is itself
+authenticated with a second, independent OAuth2 (2LO) exchange, using credentials the vendor issued
+to AnyCompany - which is exactly what the OAuth2 client set up above is for.
 
 ## The M2M token exchange at runtime
 
 `agent_core.py`'s `create_streamable_http_transport_agentcore_identity` wraps a function decorated
 with `@requires_access_token(..., auth_flow="M2M")` from `bedrock_agentcore.identity.auth` - at
 connection time, the agent exchanges its own workload identity for a short-lived access token
-scoped to the Inventory provider, then attaches it as a Bearer token on the MCP connection. Because
+scoped to the Inventory provider, then attaches it as a Bearer token on the MCP connection to
+`AnyCompany-Inventory-Tool` (`GW4`). Everything past that gateway - the second hop into the
+vendor's own domain - happens inside AWS's gateway target configuration, invisible to this
+function entirely. Because
 this callback runs inside Strands' async background thread, `agent_core.py` also has to route it
 through `_run_coroutine_blocking` to avoid an `asyncio.run() cannot be called from a running event
 loop` error - a detail visible only in the source, not in any console screen, but worth calling out

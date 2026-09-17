@@ -34,6 +34,7 @@ capability at a time, across six workshop activities.
 | If you're here to... | Start with |
 |---|---|
 | Get the 2-minute version | This README, top to bottom |
+| See the whole system at once | [`architecture/system-architecture.md`](architecture/system-architecture.md) - every service assembled into one diagram, plus the deployment pipeline |
 | Evaluate the identity architecture | [`architecture/HLD.md`](architecture/HLD.md) - requirements, candidate approaches scored, decision, and a full request sequence in [`architecture/gateway-identity-flow.md`](architecture/gateway-identity-flow.md) |
 | See the technical depth, activity by activity | [`docs/`](docs/) - six walkthroughs, each with real screenshots |
 | Check which AWS service does what | [`aws-services/`](aws-services/) - official icons mapped to their role |

@@ -10,17 +10,20 @@ graph LR
         AVP -.->|allow/deny per role| Runtime
         Runtime -->|"2 - open only allowed groups"| GW1["AgentCore Gateway<br/>ToS-Tool"]
         Runtime --> GW2["AgentCore Gateway<br/>Sales-Products-Reviews-Tool"]
-        Runtime -->|M2M token| Identity["AgentCore Identity"]
+        Runtime --> GW4["AgentCore Gateway<br/>Inventory-Tool"]
+        Runtime -.->|M2M token for GW4| Identity["AgentCore Identity"]
     end
-    subgraph TD2["Trust Domain 2 - Inventory Vendor"]
-        Identity --> GW3["AgentCore Gateway<br/>Inventory-Tool"]
+    subgraph TD2["Trust Domain 2 - Inventory Vendor (own account)"]
+        GW3["Vendor's own<br/>AgentCore Gateway"]
     end
+    GW4 -->|"2nd hop, JWT (2LO)"| GW3
 ```
 
-The same three gateways and the same cross-trust-domain Identity bridge from
+The same gateways and the same cross-trust-domain chain from
 [Activity 4](04-activity4-add-the-inventory-mcp-tool.md) - what's new is the Verified Permissions
 gate in front of all of them, which decides *per authenticated caller* which of those boxes are
-even reachable this request. See
+even reachable this request. A Supplier denied the Inventory tool group never gets as far as
+`AnyCompany-Inventory-Tool`, let alone the vendor's own gateway behind it. See
 [`architecture/gateway-identity-flow.md`](../architecture/gateway-identity-flow.md) for the full
 two-phase check.
 

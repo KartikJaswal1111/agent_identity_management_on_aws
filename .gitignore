@@ -1,6 +1,10 @@
 # Working files
 docs/images/MAPPING.md
 
+# Local-only reference material - AWS/BeSA's own workshop diagrams, kept for personal
+# cross-checking only. Not licensed for redistribution, never published to the repo.
+aws_architecture_from_workshop/
+
 # Python
 __pycache__/
 *.pyc

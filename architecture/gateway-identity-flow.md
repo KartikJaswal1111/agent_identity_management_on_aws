@@ -14,8 +14,8 @@ sequenceDiagram
     participant Agent as agent_core.py (Strands Agent)
     participant AVP as Amazon Verified Permissions (Cedar policy store)
     participant Identity as AgentCore Identity (OAuth2 credential provider)
-    participant Gateway as AgentCore Gateway (Inventory)
-    participant MCP as Inventory vendor's MCP server (separate trust domain)
+    participant Gateway as AnyCompany-Inventory-Tool<br/>(AnyCompany's own gateway)
+    participant MCP as Vendor's own AgentCore Gateway<br/>+ Lambda Authorizer + API GW + Lambda
 
     User->>Runtime: Chat message + Cognito ID token
     Runtime->>Runtime: Validate JWT (customJWTAuthorizer)
@@ -33,7 +33,8 @@ sequenceDiagram
     AVP-->>Agent: ALLOW get-inventory
     Note over Agent: Phase 2 authoritative check - only allowed tools kept
     Agent->>Gateway: MCP call_tool(get-inventory, product_id=...)
-    Gateway->>MCP: Forward call (vendor's own AuthN on their side)
+    Note over Gateway,MCP: 2nd hop: Gateway's own target config re-authenticates<br/>with a vendor-issued OAuth2 (2LO) credential - a separate<br/>exchange from the M2M token above, invisible to agent_core.py
+    Gateway->>MCP: Forward call, JWT Auth (2LO)
     MCP-->>Gateway: Inventory data
     Gateway-->>Agent: Tool result
     Agent-->>Runtime: Formatted Markdown table response
@@ -46,9 +47,11 @@ sequenceDiagram
   all?"* - unrelated to which tools they can use.
 - **AVP phase 1 (steps 5-6)** answers *"is it even worth opening a connection to this tool group for
   this caller?"* - a cheap skip, not the authoritative decision.
-- **AgentCore Identity (steps 8-10)** answers *"what credential does the agent present to a system
-  outside AnyCompany's own trust domain?"* - the M2M token exchange means the Inventory vendor's
-  OAuth2 client secret never touches the agent's code or container image (F2/F4 from the HLD).
+- **AgentCore Identity (steps 8-10)** answers *"what credential does the agent present to reach its
+  own `AnyCompany-Inventory-Tool` gateway?"* A second, independent OAuth2 exchange - using a
+  vendor-issued credential, configured on the gateway's own target, not in `agent_core.py` - is what
+  actually crosses into the vendor's trust domain from there. Either way, no client secret for
+  either hop ever touches the agent's code or container image (F2/F4 from the HLD).
 - **AVP phase 2 (steps 12-13)** is the *authoritative* decision, made after the real tool list comes
   back - this is what actually determines which tool objects the LLM ever sees.
 

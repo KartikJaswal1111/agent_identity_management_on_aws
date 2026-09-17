@@ -9,21 +9,24 @@ Follows [Activity 3a - Sales](03a-activity3a-deploy-the-sales-tool.md).
 graph LR
     subgraph TD1["Trust Domain 1 - AnyCompany"]
         User["Authenticated user"] -->|Cognito JWT| Runtime["AgentCore Runtime<br/>Strands Agent"]
-        Runtime -->|OAuth2 client credentials| GW2["AgentCore Gateway<br/>AnyCompany-Sales-Products-Reviews-Tool"]
-        GW2 --> Sales["Sales API Gateway + Lambda"]
-        GW2 --> Products["Products API Gateway + Lambda"]
+        Runtime -->|"JWT Auth (2LO)"| GW2["AgentCore Gateway<br/>AnyCompany-Sales-Products-Reviews-Tool"]
+        GW2 -->|API Key| Sales["Sales<br/>API Gateway + Lambda"]
+        GW2 -->|"OAuth2 (2LO) via<br/>Lambda Authorizer"| Products["Products<br/>API Gateway + Lambda"]
         GW1["AgentCore Gateway<br/>AnyCompany-ToS-Tool"]
         Runtime -.-> GW1
     end
 ```
 
 Sales and Products are both live now - Reviews is added next in
-[3c](03c-activity3c-deploy-the-customer-reviews-tool.md).
+[3c](03c-activity3c-deploy-the-customer-reviews-tool.md). Unlike Sales's bare API key, Products'
+target auth is a genuine OAuth2 client-credentials flow, enforced by a **Lambda Authorizer** sitting
+in front of the Products API Gateway - the authorizer is what actually validates the OAuth2 token
+before the request reaches the Lambda, rather than API Gateway's native auth options.
 
 ## A new OAuth2 client for a new target
 
-Each new tool in this gateway gets its own OAuth2 app client - the instructions walk through
-creating a client-credentials secret specific to the Products tool:
+Each new tool in this gateway gets its own OAuth2 app client where its backend calls for one - the
+instructions walk through creating a client-credentials secret specific to the Products tool:
 
 ![Instructions: creating the Products OAuth client secret](images/activity3b-01-oauth-client-secret-instructions.png)
 ![Cognito User Pool Overview, Products client context](images/activity3b-02-cognito-user-pool-overview.png)
