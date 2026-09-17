@@ -13,7 +13,10 @@ Composited directly from the same icons in [`icons/`](icons) below - an original
 reproduction of the workshop's own diagrams. It shows the full end state after all five activities:
 one gateway per inbound trust boundary (ToS, Sales/Products/Reviews, Inventory), each target's own
 outbound auth mode, the Verified Permissions gate, and the two-gateway hop into the Inventory
-vendor's independently-operated AWS account. The [per-activity Mermaid diagrams in
+vendor's independently-operated AWS account. The numbered badges follow the same activity numbering
+as the workshop itself (1 - baseline agent, 2 - ToS tool, 3/3a/3b/3c - Sales/Products/Reviews,
+4 - Inventory, 5 - Verified Permissions), so it's a direct visual cross-reference to
+[`docs/`](../docs) even though the diagram itself is redrawn from scratch. The [per-activity Mermaid diagrams in
 `docs/`](../docs) show this same system building up one activity at a time; see
 [`architecture/system-architecture.md`](../architecture/system-architecture.md) for the same
 end-state topology described in Mermaid, with a written walkthrough.
