@@ -1,9 +1,22 @@
 # AWS Services Used
 
 Every service below is mapped to the specific role it plays in this architecture - not just
-listed, but tied back to the activity that shows it running. For the full topology, see
-[`../architecture/system-architecture.md`](../architecture/system-architecture.md); this page is
-the service-level index into it.
+listed, but tied back to the activity that shows it running. For the full request-sequence and
+design-rationale views, see [`../architecture/`](../architecture); this page is the service-level
+index, plus a full visual diagram built from the icons below.
+
+## Architecture diagram
+
+![Full system architecture, built from the official AWS Architecture Icons - Cognito, AgentCore Runtime/Gateway/Identity, Verified Permissions, API Gateway, Lambda, and DynamoDB, spanning AnyCompany's trust domain and the Inventory vendor's own](architecture-diagram.png)
+
+Composited directly from the same icons in [`icons/`](icons) below - an original layout, not a
+reproduction of the workshop's own diagrams. It shows the full end state after all five activities:
+one gateway per inbound trust boundary (ToS, Sales/Products/Reviews, Inventory), each target's own
+outbound auth mode, the Verified Permissions gate, and the two-gateway hop into the Inventory
+vendor's independently-operated AWS account. The [per-activity Mermaid diagrams in
+`docs/`](../docs) show this same system building up one activity at a time; see
+[`architecture/system-architecture.md`](../architecture/system-architecture.md) for the same
+end-state topology described in Mermaid, with a written walkthrough.
 
 ## Services at a glance
 

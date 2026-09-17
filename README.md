@@ -37,7 +37,7 @@ capability at a time, across six workshop activities.
 | See the whole system at once | [`architecture/system-architecture.md`](architecture/system-architecture.md) - every service assembled into one diagram, plus the deployment pipeline |
 | Evaluate the identity architecture | [`architecture/HLD.md`](architecture/HLD.md) - requirements, candidate approaches scored, decision, and a full request sequence in [`architecture/gateway-identity-flow.md`](architecture/gateway-identity-flow.md) |
 | See the technical depth, activity by activity | [`docs/`](docs/) - six walkthroughs, each with real screenshots |
-| Check which AWS service does what | [`aws-services/`](aws-services/) - official icons mapped to their role |
+| Check which AWS service does what | [`aws-services/`](aws-services/) - official icons mapped to their role, plus a full icon-composited architecture diagram |
 | Look at actual code | [`code/`](code/) - read [`code/README.md`](code/README.md) first; this is the real workshop source, not a reconstruction |
 
 ## The problem
@@ -145,6 +145,8 @@ included.
 See [`CERTIFICATION.md`](CERTIFICATION.md).
 
 ## Disclaimer
+
+Thanks to BeSA and AWS for the hands-on environment and compute that made this build possible.
 
 This is an independent write-up of my own hands-on work completing a lab on the BeSA workshop
 platform. The lab content itself is AWS's own **"SEC307: Agent Identity Management"** re:Invent
